@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Portfolio de Langlois Paul — travaux d'architecture sélectionnés (Licence & Master)." />
+    <title>Langlois Paul | Portfolio Architecture</title>
+    
+    <!-- Bibliothèques (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            scroll-behavior: smooth; 
+            margin: 0;
+            background-color: #fafafa;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Animations fluides pour le Hero */
+        .hero-slide {
+            will-change: opacity;
+            transition: opacity 2500ms ease-in-out;
+        }
+        .hero-img {
+            will-change: transform;
+            transition: transform 10000ms ease-out;
+        }
+
+        /* Indicateur de chargement initial */
+        #loader {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <div class="flex flex-col items-center">
+            <div class="w-12 h-12 border-2 border-neutral-200 border-t-black rounded-full animate-spin"></div>
+            <p class="mt-4 text-[10px] uppercase tracking-widest text-neutral-400">Chargement du Portfolio...</p>
+        </div>
+    </div>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Icons = {
+            Mail: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>,
+            Phone: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
+            MapPin: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
+            ExternalLink: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>,
+            ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
+            ChevronLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>,
+            Menu: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
+            X: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        };
+
+        const projectsData = [
+            {
+                id: 1, year: 'L1', semester: 'S1', title: "La paroi-Le couvert-La partition", type: "Concept",
+                images: ["1DFrXeGn82ilXzqkLXpGdqbjzm3LWd7Ts", "1wYQggZFdvROwg_ASiGBO8aJyW4jKSQSZ", "1Nxk98772V5p-mgzhfeT1C2DMXTAPYwrM", "18uX1odjpsJGDL-4YvhsDtwlBgmAI16jM", "19Zua_CMR0UEMUWGWOFFLB532UInteumB", "1xU42Mz5nRrylcgJvRHJvJxlLEYf0Z0jx"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Cette série de trois exercices, pensés comme un ensemble cohérent, constitue une première entrée en matière à l’école d’architecture. Leur objectif commun est d’explorer la spatialité à travers la conception d’espaces définis par le partage, l’intensité et la continuité. Chaque exercice propose une réflexion conceptuelle sur la structure primitive (paroi, couvert, partition) et de la modulation de la lumière, invitant à une approche sensible et expérimentale de l’espace.`,
+                skills: ["Maquettes", "Dessins", "Géométrie", "Spatialité"]
+            },
+            {
+                id: 7, year: 'L1', semester: 'S2', title: "Sur la parcelle étroite", type: "Equipement",
+                images: ["1c2DabqwqXkfflmZWMlh_DXoTstnrImZ2", "1A2X074EYjQopqsToEYjcb4RbXekWKKJe", "1HlhfAdQHnATczp9g99vwk0mSlcKF6-iA", "1TYYfql_iZl0J4V8g5p3V0C_B0GekMrRO", "1iTXPogvXTYmWu0Zo786_pOvvSPqdQo3G", "1fuMGxefx37jQfftufP3mCz2q_pzeT4B9"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Ce projet, réalisé en binôme, consistait à concevoir un équipement public sur une parcelle urbaine étroite, avec une liberté totale sur le programme. Nous avons choisi d’associer une crèche, une bibliothèque et un café, créant ainsi un espace multigénérationnel au cœur de la ville. L’enjeu était de répondre aux besoins variés des usagers tout en optimisant l’espace disponible, pour favoriser les rencontres et le partage entre les générations.`,
+                skills: ["Plans", "Maquettes", "Fusains"]
+            },
+            {
+                id: 2, year: 'L2', semester: 'S3', title: "52 logements dans un parking", type: "Logement",
+                images: ["1EgZN5oqFnU1JuQ68nNUaP-toRM4XeebK", "1SaBY4roDLT208xeIkQiuBICLqZmVgiED", "1kegg-hAd1ngGO9a98cbaH6JiqdP17n3K", "1QtrHxwx29DM-UfiXEceN8ij7r8P6lazV", "1jFl4pcIARD7oadtj81Ma5qRLKSA5Pb79", "14aRZGVMBXDjiRfVHU-eriyeDioxLW97N"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Ce projet propose la reconversion d’un parc relais automobile en un ensemble de 52 logements, démontrant comment les parkings silos peuvent être transformés en espaces habitables tout en préservant leur structure porteuse. Mon intervention a consisté à démolir la partie centrale pour y créer un patio et un réseau de coursives internes, favorisant la lumière et la circulation au cœur du bâtiment. Les matériaux issus de la démolition ont été valorisés : le béton concassé a été réemployé dans des gabions, tandis que les prédalles existantes ont servi à l’aménagement du patio. Un niveau a été conservé pour le stationnement des voitures et des vélos, optimisant ainsi l’usage mixte du site.`,
+                skills: ["Structure Béton", "Réemploi", "Bioclimatisme"]
+            },
+            {
+                id: 5, year: 'L2', semester: 'S4', title: "Les Sentinelles du Vignoble", type: "Équipement",
+                images: ["1Yx6IYyBNhUfP7vlS4bKmKSn7JySZEjSz", "1JDrSvJwZE8ZHhNZhzQ8oMaZNQKBwOY5F", "1aXDQZbREmrULf4aAmjvrVvs-a1V8xAop", "1xxoz305SG7-BydtIxA-SfITrQc37Lrkp"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Située à 60 km au nord de Bordeaux, entre la Charente et l'Estuaire de la Gironde, la commune de Saint-Ciers sur Gironde mise sur ses marais, son artisanat et son appellation Blayais. Face aux enjeux de ruralité (emploi, logement), ce projet transforme l’ancienne gendarmerie en centre de recherche viticole, dédié à des cépages résistants au climat. Avec un point de vente et un espace public, il vise à dynamiser le territoire et répondre aux attentes locales.`,
+                skills: ["Bois", "Vernaculaire", "Extension"]
+            },
+            {
+                id: 3, year: 'L3', semester: 'S5', title: "Terra-Viva", type: "Urbanisme",
+                images: ["1s3isB3X2MzKlKGayiqo_4j8KNnyQxTsA", "1eLymly7GV_gql1UZgyJOr-76fzfpsWvE", "1hjDj9L_Erv1xPx4m31iMh2kUszp4Uzbt", "1qA7IfwzeyRxgPo4hquamS1eGmQFIXVJk", "1ra5l05JD5O71_RY3mlxQsajp0Bgq0mOh"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Le projet Terra-Viva est avant tout un concept de ferme urbaine réinventée. La densification est un parti pris dans ce projet pour limiter l’étalement et préserver les sols. Les toitures et espaces intérieurs sont dédiés à la production de fruits et légumes, optimisant le foncier et renforçant l’autonomie alimentaire. Les logements, en duplex, intègrent des jardins d’hiver modulables (serres privatives). Un système bioclimatique jumelé avec un système de récupération d’eau qui assure l’autonomie du bâtiment, tandis que les commerces en rez-de-chaussée réduisent les déplacements.`,
+                skills: ["Agriculture", "Bioclimatisme", "Analyse Urbaine"]
+            },
+            {
+                id: 8, year: 'L3', semester: 'S6', title: "Le Remp'Art", type: "Équipement",
+                images: ["1NNTJSzT_pLuHGDdAao5e1giIQTvMq6p4", "1F8BGpbqhZfg7czV-pK1_Q7_bC8-4f4Te", "1NRiuhDJUI0lupH1c7fIIFspPxdsHBxHp", "1WYiWlLMuCqQrUDg2ElPr_DNwc8GpUVyT", "1gDQQdL_3k-YgbaHIerK8wflsvWgcb9BG", "1lyqsjh213efwdTOUNhPdCzDr2sHRsDUL"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Le projet, réalisé en groupe de trois, repose sur un concept fort : un rempart contemporain marquant l’entrée du nouveau Campus Peixotto. Ce bâtiment emblématique regroupe l’ensemble du programme, de la salle de spectacle aux logements, en passant par les studios de danse et de musique. Des percées architecturales, guidées par les flux piétons, renforcent la lisibilité des accès. Un parc s’insère en continuité des espaces verts existants, animé par un city parc favorisant la mixité des usages. Les commerces en rez-de-chaussée, ouverts au nord et au sud, assurent une transparence visuelle entre le parc et le tramway tout en animant les façades.`,
+                skills: ["Culture", "Mixité", "Programmation"]
+            },
+            {
+                id: 4, year: 'M1', semester: 'S7', title: "Le Jupon", type: "Logement",
+                images: ["1ux0U18-fhyxAzwbBLsWsrn3SXcL2iQDN", "1kDIihE4FZTUcq5iEi-OOOzofT8SjEM1Z", "1SYlULGUjoOjirRD8EBa4cPyFXYEW6zkg", "1ZBHxYX1PdCy3e7h2dXUQ88FG4qJpQ3nQ", "1wgQbr2S0w4mcc-4Pw-GIkM2Y7dfCFqE2", "1lvhml_kIXbO-veURR4B_RPImjc8cCPQo", "1AA0l6roipY9rk1nlY-QfO6eZZ2O4dj-U", "1t5ohcMXbJMldbtjzF52ZwJObXnK3vOfX"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Le projet naît d’un constat lié au site des Landes, marqué par une topographie faible mais perceptible, lisible notamment à travers la ligne d’horizon formée par les toitures semblant émerger du sol. Cette lecture du paysage constitue le point de départ du projet. J’ai ainsi choisi de creuser et de retravailler le terrain afin d’y implanter le bâtiment : au nord, il effleure le sol, tandis qu’au sud il s’ouvre davantage. Une superstructure en bois, indépendante de la partition, est mise en place afin de générer des plans libres. Composée de trois types de portiques, elle dicte les volumes et les formes de toiture, produisant une diversité volumétrique. La partition intérieure est une proposition non figée. Pensée comme un grand hangar, la superstructure abrite un aménagement souple et évolutif, capable de s’adapter aux usages, aux besoins et au temps.`,
+                skills: ["Superpstructure", "Paysage", "Autoconstruction"]
+            },
+            {
+                id: 9, year: 'M1', semester: 'S8', title: "En cours...", type: "Projet Master",
+                images: ["1aHcupd-OJMHNoMJmbI5H-jAh6Eb1k_sy"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Projet du semestre 8 en cours de conception. Exploration de nouvelles thématiques liées à l'habitat et à la matérialité dans le cadre du cycle Master à l'ENSAP Bordeaux.`,
+                skills: ["M1", "Recherche", "Conception"]
+            },
+            {
+                id: 10, year: 'Autres', semester: 'Concours 1', title: "Concours Acier 2024", type: "Concours",
+                images: ["1gpcgl_grnUoleUO0rWiSJJz4OWfOsN3-", "1F_vnBZJvu4y8P9D6CNbHBK1ijqgC5yr5", "1UuO-wqZMJaznTeTMPX9t5z9FwaVpd1Z6", "1AMvkHOaK1O0gg9dj4vdNGuN1rwNaZrnK", "1q-mqttZhq33F16Iwvx2lwvrGACWccEt9", "12bD49NuRDd4c4cz74v6DDQqUPUaCCWc5", "1EKENHS9SgiyO0rg6PXwqgDglrt7lNXae", "1QxfZLoKzsGolKNNYWVM3EN5e2I63KSDY", "1Z3yvw1vRsLITPhJuFSOTS33N8fEEmVBM", "1gBtPGoNpB0Voe8JG_XtqRrrdefZsyvPP", "1z1ScgcjMxWdqe6epYxTJgE3wSS_e5TT0", "1XzKChx5CzFU8OnuzJb1qYEV-k-_GBJHV"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Serreco est un projet finaliste du concours Acier 2024, que j’ai mené en binôme avec un camarade. L’objectif de ce concours était de réinvestir une friche urbaine en concevant un projet cohérent avec son quartier, tout en intégrant l’utilisation d’acier, qu’il soit recyclé ou non. Notre concept s’articule autour de l’aquaponie et de l’autonomie, avec une approche éco-responsable : nous réemployons notamment des disques de déchaumeurs agricoles comme brise-soleil. L’idée est de proposer aux habitants un système de production local, tout en offrant des espaces polyvalents : des bureaux, une salle de sport et une salle commune, pour diversifier les usages du lieu.`,
+                skills: ["Structure Acier", "Modularité", "Réemploi", "Aquaponie"]
+            },
+            {
+                id: 11, year: 'Autres', semester: 'Concours 2', title: "Concours BNP Paribas 2025", type: "Concours",
+                images: ["1mqXTKpcg_oo_7VpCHvIPxfksN6X4Fbtp", "1w-NAbfoPmXMHDnaO7j43s-ifIosX9wdt", "1Rgyy3lWuV4gG2S9UmET5TnkBKHrGYYhG", "18wUjedjdnqlxBbXNioUZU2HTk2LQXBk4", "11-kdw9w3sRqLiu8xOtS_IHP5IUYsJT7e", "1cjGUuOYa_CAXqbkDXW7dxm_8SrmL6rJf", "14AzyNiDqTBgL1Tf0E4teP-29tVjrasfW", "1qH9J3NPoNTwrQxi4J4JVS-UKZjWFg50P", "1X99TUElGvmXrxnWNkOCEVe7GNkH3QZuU"].map(id => `https://lh3.googleusercontent.com/d/${id}`),
+                description: `Tropic’Hall est un projet de réhabilitation de l’ancienne gare de La Châtre (Indre), mené individuellement. Dans le cadre de ce concours, l’enjeu était d’adapter le bâtiment aux défis du changement climatique. J’ai imaginé une serre tropicale conçue pour atténuer les surchauffes estivales, tout en créant un espace intergénérationnel. Le projet intègre un café, une scène et une bibliothèque, pour en faire un lieu de vie convivial et polyvalent. Ce projet n’a cependant pas été retenu en finale.`,
+                skills: ["Réhabilitation", "Climat", "Serre", "Innovation"]
+            }
+        ];
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('L1');
+            const [activeSemester, setActiveSemester] = useState('tous');
+            const [selectedProject, setSelectedProject] = useState(null);
+            const [currentModalImage, setCurrentModalImage] = useState(0);
+            const [currentSlide, setCurrentSlide] = useState(0);
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+            const heroImages = [
+                "1hbJy7GZPRn60IHyj2qHhto-Kvb60KjWw", "1W2eJBvtRxW1SJ3CgoHL5EZBWBo3T5Ab7", "1_7yi0WpT85qsO378PFAGGzuhh19XTvow",
+                "1hjEOlzZ8nM9Uh8U72Xm8nU9nAt4a1xuL", "1u562z4XWJ8xYYrrjgRXbOE52NqFtRWZE"
+            ].map(id => `https://lh3.googleusercontent.com/d/${id}`);
+
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setCurrentSlide((p) => (p === heroImages.length - 1 ? 0 : p + 1));
+                }, 6000);
+                // On cache le loader une fois que le JS est prêt
+                const loader = document.getElementById('loader');
+                if (loader) {
+                    setTimeout(() => {
+                        loader.style.opacity = '0';
+                        setTimeout(() => loader.remove(), 600);
+                    }, 1000);
+                }
+                return () => clearInterval(timer);
+            }, [heroImages.length]);
+
+            const yearToSemesters = {
+                'L1': ['S1', 'S2'], 'L2': ['S3', 'S4'], 'L3': ['S5', 'S6'], 'M1': ['S7', 'S8'], 'Autres': ['Concours 1', 'Concours 2']
+            };
+
+            const filteredProjects = projectsData.filter(p => {
+                const yearMatch = p.year === activeTab;
+                const semMatch = activeSemester === 'tous' || p.semester === activeSemester;
+                return yearMatch && semMatch;
+            });
+
+            return (
+                <div className="min-h-screen bg-neutral-50 text-neutral-900 text-left">
+                    <nav className="fixed w-full bg-white/95 backdrop-blur-md z-50 border-b border-neutral-100">
+                        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                            <div className="flex flex-col">
+                                <span className="text-lg font-bold tracking-tighter uppercase">Langlois Paul</span>
+                                <span className="text-[10px] text-neutral-500 uppercase tracking-widest leading-none font-medium">Étudiant en Architecture · M1</span>
+                            </div>
+                            <div className="hidden md:flex space-x-12">
+                                <a href="#projets" className="text-gray-500 hover:text-black transition-colors font-medium tracking-wide uppercase text-[10px]">Portfolio</a>
+                                <a href="#about" className="text-gray-500 hover:text-black transition-colors font-medium tracking-wide uppercase text-[10px]">Profil</a>
+                                <a href="#contact" className="text-gray-500 hover:text-black transition-colors font-medium tracking-wide uppercase text-[10px]">Contact</a>
+                            </div>
+                            <button aria-label="Ouvrir le menu" className="md:hidden text-black" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                                {isMenuOpen ? <Icons.X /> : <Icons.Menu />}
+                            </button>
+                        </div>
+                        {isMenuOpen && (
+                            <div className="md:hidden bg-white border-b p-6 flex flex-col space-y-4">
+                                <a onClick={() => setIsMenuOpen(false)} href="#projets" className="uppercase text-[10px] font-bold tracking-widest text-neutral-500">Portfolio</a>
+                                <a onClick={() => setIsMenuOpen(false)} href="#about" className="uppercase text-[10px] font-bold tracking-widest text-neutral-500">Profil</a>
+                                <a onClick={() => setIsMenuOpen(false)} href="#contact" className="uppercase text-[10px] font-bold tracking-widest text-neutral-500">Contact</a>
+                            </div>
+                        )}
+                    </nav>
+
+                    <section className="relative h-screen w-full overflow-hidden flex items-center justify-center text-center bg-black">
+                        {heroImages.map((img, index) => {
+                            const isActive = index === currentSlide;
+                            return (
+                                <div key={index} className={`absolute inset-0 hero-slide ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
+                                    <div className="absolute inset-0 bg-black/30 z-20" />
+                                    <img src={img} alt={`Image d'illustration ${index+1}`} className={`w-full h-full object-cover hero-img ${isActive ? 'scale-110' : 'scale-100'}`} />
+                                </div>
+                            );
+                        })}
+                        <div className="relative z-30 text-white px-6">
+                            <h1 className="text-5xl md:text-8xl font-extralight tracking-tighter mb-6 uppercase drop-shadow-lg">Portfolio</h1>
+                            <div className="w-16 h-[1px] bg-white mx-auto mb-6" />
+                            <p className="text-xs md:text-sm uppercase tracking-[0.5em] font-light drop-shadow-sm">Travaux Sélectionnés · 2022 — 2026</p>
+                        </div>
+                    </section>
+
+                    <section id="projets" className="py-32 px-6 max-w-7xl mx-auto">
+                        <div className="md:w-2/3 mb-24 text-left text-black">
+                            <h2 className="text-3xl md:text-5xl font-extralight leading-tight mb-8 italic">Architecture située, matérialité et projet.</h2>
+                            <p className="text-neutral-500 text-lg leading-relaxed max-w-xl font-light">
+                                Ce recueil présente une sélection de projets développés au cours du cycle de Licence et du début de Master en école d’architecture. Ces travaux explorent les enjeux de l’espace, de l’urbanisme et de la matérialité, tout en s’inscrivant dans une démarche attentive au site pour chaque proposition.
+                            </p>
+                        </div>
+
+                        <div className="mb-12">
+                            <div className="flex flex-wrap items-center justify-between mb-8 gap-6 border-b border-neutral-200 pb-8 overflow-x-auto no-scrollbar">
+                                <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-neutral-300 whitespace-nowrap">Cursus Académique</h3>
+                                <div className="flex gap-4">
+                                    {['L1', 'L2', 'L3', 'M1', 'Autres'].map((tab) => (
+                                        <button key={tab} onClick={() => {setActiveTab(tab); setActiveSemester('tous');}} className={`px-8 py-2 text-[10px] uppercase tracking-widest border transition-all ${activeTab === tab ? 'bg-black text-white border-black shadow-lg' : 'bg-transparent text-neutral-400 border-neutral-200 hover:border-black hover:text-black font-medium'}`}>{tab}</button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="flex items-center space-x-8 pb-2">
+                                <span className="text-[10px] uppercase tracking-widest font-bold text-neutral-300 whitespace-nowrap font-medium">{activeTab === 'Autres' ? 'Catégorie :' : `Détail ${activeTab} :`}</span>
+                                <div className="flex gap-6 overflow-x-auto no-scrollbar">
+                                    {['tous', ...yearToSemesters[activeTab]].map((sem) => (
+                                        <button key={sem} onClick={() => setActiveSemester(sem)} className={`text-[10px] uppercase tracking-[0.2em] transition-all relative py-1 whitespace-nowrap ${activeSemester === sem ? 'text-black font-bold after:content-[""] after:absolute after:bottom-0 after:left-0 after:w-full after:h-[1px] after:bg-black' : 'text-neutral-400 hover:text-neutral-600 font-medium'}`}>{sem === 'tous' ? (activeTab === 'Autres' ? 'Tous les projets' : 'Année complète') : sem.replace('S', 'Semestre ')}</button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 min-h-[500px]">
+                            {filteredProjects.map((p) => (
+                                <div key={p.id} className="project-card group cursor-pointer" onClick={() => {setSelectedProject(p); setCurrentModalImage(0);}}>
+                                    <div className="relative overflow-hidden aspect-[4/5] bg-neutral-200">
+                                        <img src={p.images[0]} alt={`${p.title} — vignette`} className="w-full h-full object-cover grayscale transition-all duration-1000 group-hover:grayscale-0 group-hover:scale-105" />
+                                        <div className="absolute top-4 left-4 bg-black text-white px-3 py-1 text-[9px] font-bold uppercase tracking-widest">{p.semester || "Concours"}</div>
+                                    </div>
+                                    <div className="mt-8 border-l border-neutral-200 pl-6 text-left">
+                                        <div className="text-[9px] text-neutral-400 uppercase tracking-widest mb-2">{p.type}</div>
+                                        <h3 className="text-xl font-light group-hover:translate-x-2 transition-transform duration-300 flex items-center justify-between">
+                                            {p.title} <Icons.ChevronRight />
+                                        </h3>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section id="about" className="py-32 bg-white border-y border-neutral-200 px-6">
+                        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
+                            <div className="aspect-[3/4] bg-neutral-100 overflow-hidden shadow-inner border border-neutral-100 text-black">
+                                <img src="https://lh3.googleusercontent.com/d/1EavmslInzTCiRnAtKyTc0DWS-1lKEBif" alt="Portrait — Langlois Paul" className="w-full h-full object-cover grayscale opacity-90" />
+                            </div>
+                            <div className="text-left text-black">
+                                <h2 className="text-4xl font-extralight mb-10 text-left">Parcours & Vision</h2>
+                                <div className="space-y-8 text-neutral-600 leading-relaxed text-lg font-light">
+                                    <p>Actuellement en Master 1 à l’ENSAP Bordeaux, mon approche privilégie une architecture située, profondément ancrée dans son contexte. Je porte un intérêt particulier aux modes constructifs durables, ainsi qu’au rôle fondamental des matériaux, du site et du territoire dans la conception architecturale.</p>
+                                    <p>Venant du monde agricole, je suis naturellement sensible à ces enjeux : chaque élément, chaque ajout est calculé pour proposer une architecture durable, pérenne et agréable. Je crois en une architecture adaptable dans le temps, où la nature et les usagers sont au cœur du projet.</p>
+                                    <p>Mon objectif ? Construire avec respect, en intégrant la nature comme une partenaire, et en plaçant le bien-être des usagers au centre de chaque réalisation.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {selectedProject && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 text-black text-left">
+                            <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={() => setSelectedProject(null)}></div>
+                            <div className="relative bg-white w-full max-w-6xl max-h-[92vh] overflow-hidden flex flex-col md:flex-row shadow-2xl">
+                                <div className="md:w-3/5 bg-neutral-100 flex items-center justify-center relative group h-64 md:h-auto overflow-hidden">
+                                    <img src={selectedProject.images[currentModalImage]} alt={`${selectedProject.title} — image ${currentModalImage+1}`} className="w-full h-full object-contain p-4 md:p-8" />
+                                    {selectedProject.images.length > 1 && (
+                                        <>
+                                            <button aria-label="Image précédente" onClick={(e) => {e.stopPropagation(); setCurrentModalImage(i => i === 0 ? selectedProject.images.length - 1 : i - 1)}} className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white p-3 rounded-full shadow-md text-black flex items-center justify-center"><Icons.ChevronLeft /></button>
+                                            <button aria-label="Image suivante" onClick={(e) => {e.stopPropagation(); setCurrentModalImage(i => i === selectedProject.images.length - 1 ? 0 : i + 1)}} className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white p-3 rounded-full shadow-md text-black flex items-center justify-center"><Icons.ChevronRight /></button>
+                                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2">
+                                                {selectedProject.images.map((_, idx) => (
+                                                    <button key={idx} aria-label={`Aller à l'image ${idx+1}`} onClick={(e) => {e.stopPropagation(); setCurrentModalImage(idx);}} className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentModalImage ? 'bg-black w-4' : 'bg-black/20 hover:bg-black/40'}`} />
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                                <div className="md:w-2/5 p-8 md:p-16 flex flex-col overflow-y-auto text-left">
+                                    <button aria-label="Fermer la fenêtre" className="absolute top-8 right-8 z-10 p-3 bg-black text-white rounded-full shadow-lg" onClick={() => setSelectedProject(null)}><Icons.X /></button>
+                                    <div className="text-[10px] text-neutral-400 uppercase tracking-[0.3em] mb-4 font-bold">{selectedProject.year === 'Autres' ? 'Concours / Personnel' : `Architecture · ${selectedProject.year} / ${selectedProject.semester}`}</div>
+                                    <h3 className="text-4xl font-light mb-10 font-medium">{selectedProject.title}</h3>
+                                    <p className="text-neutral-500 leading-relaxed text-lg font-light mb-12">{selectedProject.description}</p>
+                                    <div className="mt-auto pt-10 border-t border-neutral-100">
+                                        <h4 className="text-[10px] uppercase tracking-widest font-bold mb-6 text-neutral-400">Outils & Techniques</h4>
+                                        <div className="flex flex-wrap gap-2 text-neutral-600">
+                                            {selectedProject.skills.map((s, i) => <span key={i} className="px-4 py-2 bg-neutral-50 border border-neutral-200 text-[10px] uppercase tracking-wider font-medium">{s}</span>)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <footer id="contact" className="bg-neutral-900 text-white py-32 px-6 text-center">
+                        <div className="max-w-6xl mx-auto">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-24 font-medium">
+                                <a href="mailto:paul.langlois36@orange.fr" className="flex flex-col items-center group">
+                                    <div className="w-14 h-14 border border-neutral-700 rounded-full flex items-center justify-center mb-6 group-hover:bg-white group-hover:text-black transition-all flex items-center justify-center"><Icons.Mail /></div>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold mb-2">Email</span>
+                                    <span className="text-sm text-neutral-500 group-hover:text-white transition-colors font-light">paul.langlois36@orange.fr</span>
+                                </a>
+                                <a href="tel:0771680030" className="flex flex-col items-center group">
+                                    <div className="w-14 h-14 border border-neutral-700 rounded-full flex items-center justify-center mb-6 group-hover:bg-white group-hover:text-black transition-all flex items-center justify-center"><Icons.Phone /></div>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold mb-2">Téléphone</span>
+                                    <span className="text-sm text-neutral-500 group-hover:text-white transition-colors font-light">07 71 68 00 30</span>
+                                </a>
+                                <div className="flex flex-col items-center">
+                                    <div className="w-14 h-14 border border-neutral-700 rounded-full flex items-center justify-center mb-6 flex items-center justify-center"><Icons.MapPin /></div>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold mb-2 text-center w-full">Localisation</span>
+                                    <span className="text-sm text-neutral-500 font-light">Bordeaux / Châteauroux</span>
+                                </div>
+                                <a href="https://drive.google.com/file/d/1MhT4SfDyFTMfZWtD9-lOurPtb_H8WvD0/view?usp=drive_link" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center group">
+                                    <div className="w-14 h-14 border border-neutral-700 rounded-full flex items-center justify-center mb-6 group-hover:bg-white group-hover:text-black transition-all flex items-center justify-center"><Icons.ExternalLink /></div>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold mb-2">CV PDF</span>
+                                    <span className="text-sm text-neutral-500 group-hover:text-white transition-colors font-light">Consulter le dossier</span>
+                                </a>
+                            </div>
+                            <div className="pt-12 border-t border-neutral-800 flex flex-col md:flex-row justify-between items-center gap-6">
+                                <p className="text-[10px] uppercase tracking-[0.4em] text-neutral-600">&copy; 2024 Langlois Paul · Étudiant M1 · ENSAP Bordeaux</p>
+                            </div>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
